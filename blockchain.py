@@ -59,8 +59,8 @@ class Blockchain(object):
     @staticmethod
     def valid_proof(last_proof, proof):
         guess = f'{last_proof}{proof}'.encode()
-        print(f'guess := {guess}')
         guess_hash = hashlib.sha256(guess).hexdigest()
+
         return guess_hash[:4] == "0000"
 
 
@@ -116,6 +116,30 @@ def full_chain():
         'chain': blockchain.chain,
         'length': len(blockchain.chain),
     }
+    return jsonify(response), 200
+
+@app.route('/balance/<id>', methods=['GET'])
+def balance(id):
+    
+    sent, recived = 0,0
+    verified_transactions = []
+
+    for transaction in blockchain.chain:
+        verified_transactions.extend(transaction['transactions'])
+    
+
+    for transaction in verified_transactions:
+        
+        if id == transaction['recipient']:
+            recived += transaction['amount']
+        elif id == transaction['sender']:
+            sent += transaction['amount']
+   
+    
+    response = {
+        'balance': recived - sent
+    }
+
     return jsonify(response), 200
 
 if __name__ == '__main__':
